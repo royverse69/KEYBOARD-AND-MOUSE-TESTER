@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Mouse & Keyboard Tester</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #1a1b1e;
+            --surface-color: #242529;
+            --primary-text-color: #f0f0f0;
+            --secondary-text-color: #9a9ca3;
+            --border-color: #3a3b40;
+            --highlight-color: #313237;
+            --accent-color: #007aff; /* Professional Blue */
+            --accent-glow-color: rgba(0, 122, 255, 0.5);
+            --danger-color: #ff3b30; /* Professional Red */
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--primary-text-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+            -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        /* --- Main Tab Navigation --- */
+        .tab-nav { display: flex; background-color: rgba(0,0,0,0.1); padding: 6px; }
+        .tab-button {
+            flex-grow: 1; padding: 0.75rem; text-align: center; cursor: pointer; background-color: transparent;
+            border: none; border-radius: 10px; color: var(--secondary-text-color); font-size: 0.9rem; font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .tab-button.active { color: var(--primary-text-color); background-color: var(--highlight-color); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        .tester-panel { display: none; padding: 2rem; }
+        .tester-panel.active { display: block; }
+        h2 { margin-top: 0; margin-bottom: 2rem; text-align: center; font-weight: 700; color: var(--primary-text-color);}
+
+        /* --- Mouse Tester Sub-Navigation --- */
+        .sub-nav { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .sub-tab-button {
+            background-color: var(--highlight-color); border: 1px solid var(--border-color); color: var(--secondary-text-color);
+            padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
+        }
+        .sub-tab-button.active { background-color: var(--accent-color); color: white; border-color: var(--accent-color); }
+        .mouse-tester-view { display: none; }
+        .mouse-tester-view.active { display: flex; flex-direction: column; align-items: center; }
+
+        /* Double Click Tester */
+        #double-click-area {
+            background: linear-gradient(145deg, var(--accent-color), #0056b3);
+            color: white; font-weight: 500; text-align: center;
+            padding: 4rem 2rem; border-radius: 12px; cursor: pointer; margin-bottom: 1.5rem;
+            transition: all 0.2s ease; width: 100%; box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
+        }
+        #double-click-area:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0, 122, 255, 0.3); }
+        #double-click-area.test-active { background: linear-gradient(145deg, var(--danger-color), #c21a2c); box-shadow: 0 8px 16px rgba(255, 59, 48, 0.4); }
+
+        /* Button Tester */
+        #button-test-view { cursor: pointer; width: 100%; text-align: center;}
+        #virtual-mouse { max-height: 280px; width: 180px; }
+        #virtual-mouse .mouse-body { fill: var(--highlight-color); transition: fill 0.2s ease; }
+        #virtual-mouse .mouse-button { fill: #2c2c2c; transition: fill 0.2s, filter 0.2s; }
+        #virtual-mouse.active .mouse-body { fill: #4a4a4a; }
+        #virtual-mouse .mouse-button.glow { fill: var(--accent-color); filter: drop-shadow(0 0 20px var(--accent-glow-color)); }
+        #button-log { 
+            text-align: center; margin-top: 1.5rem; min-height: 30px; color: var(--secondary-text-color);
+            font-size: 1.25rem; font-weight: 500; transition: color 0.2s;
+        }
+        #button-log.active { color: var(--accent-color); }
+
+        /* Common Mouse Stats */
+        .mouse-stats { display: flex; justify-content: center; align-items: flex-end; gap: 1rem; flex-wrap: wrap; width: 100%; }
+        .control-group { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+        .control-group label { font-size: 0.9rem; color: var(--secondary-text-color); }
+        input[type="text"] {
+            background-color: var(--bg-color); color: var(--primary-text-color); border: 1px solid var(--border-color);
+            padding: 10px; border-radius: 8px; font-size: 1.2rem; font-family: 'Roboto Mono', monospace; font-weight: 400; width: 80px; text-align: center;
+        }
+        #reset { background-color: var(--highlight-color); color: var(--primary-text-color); border: 1px solid var(--border-color); padding: 12px 24px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+        #reset:hover { background-color: var(--danger-color); color: white; border-color: var(--danger-color); }
+        #mouse-log {
+            width: 100%; height: 100px; background-color: var(--bg-color); color: #c1c3c9; border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 12px; font-family: 'Roboto Mono', monospace; font-size: 0.9rem; margin-top: 1.5rem; resize: vertical; box-sizing: border-box;
+        }
+
+        /* --- Virtual Keyboard Styles --- */
+        #virtual-keyboard { display: flex; flex-direction: column; gap: 6px; background-color: #111; padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .keyboard-row { display: flex; justify-content: center; gap: 6px; }
+        .key {
+            background-color: var(--highlight-color); color: var(--primary-text-color); border: none; border-bottom: 3px solid #222;
+            border-radius: 6px; flex-grow: 1; height: 45px; display: inline-flex; justify-content: center; align-items: center;
+            font-size: 0.9rem; box-sizing: border-box; transition: all 0.1s ease;
+        }
+        .key.glow { background-color: var(--accent-color); border-bottom-color: #0056b3; color: white; transform: translateY(2px); }
+        .key[data-key="Space"] { flex-grow: 5; }
+
+        footer { text-align: center; padding: 2rem 1rem 0 1rem; color: #777; font-size: 0.85em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <nav class="tab-nav">
+            <button class="tab-button active" data-tab="mouse-tester">Mouse Tester</button>
+            <button class="tab-button" data-tab="keyboard-tester">Keyboard Tester</button>
+        </nav>
+
+        <!-- Mouse Tester Panel -->
+        <div id="mouse-tester" class="tester-panel active">
+            <div class="sub-nav">
+                <button class="sub-tab-button active" data-view="double-click-view">Double Click Test</button>
+                <button class="sub-tab-button" data-view="button-test-view">Button Tester</button>
+            </div>
+
+            <div id="double-click-view" class="mouse-tester-view active">
+                <div id="double-click-area">Click here to test double click speed</div>
+                <div class="mouse-stats">
+                     <div class="control-group"><label for="count">Total Clicks</label><input id="count" type="text" value="0" readonly></div>
+                     <div class="control-group"><label for="dcCount">Double Clicks</label><input id="dcCount" type="text" value="0" readonly></div>
+                    <button id="reset">Reset</button>
+                </div>
+                <textarea id="mouse-log" readonly placeholder="Double click log will appear here..."></textarea>
+            </div>
+
+            <div id="button-test-view" class="mouse-tester-view">
+                <svg id="virtual-mouse" viewBox="0 0 200 300">
+                    <path class="mouse-body" d="M100 0 C40 0 40 70 40 120 L40 250 C40 280 60 300 100 300 C140 300 160 280 160 250 L160 120 C160 70 160 0 100 0 Z"/>
+                    <path id="mouse-left" class="mouse-button" d="M100 0 C40 0 40 70 40 120 L95 120 L95 10 Z"/>
+                    <path id="mouse-right" class="mouse-button" d="M100 0 C160 0 160 70 160 120 L105 120 L105 10 Z"/>
+                    <rect id="mouse-middle" class="mouse-button" x="96" y="10" width="8" height="60" rx="4"/>
+                    <path id="mouse-back" class="mouse-button" d="M30 140 C20 150 20 170 30 180 L40 175 L40 145 Z"/>
+                    <path id="mouse-forward" class="mouse-button" d="M30 190 C20 200 20 220 30 230 L40 225 L40 195 Z"/>
+                </svg>
+                <div id="button-log">Press any mouse button</div>
+            </div>
+        </div>
+
+        <!-- Keyboard Tester Panel -->
+        <div id="keyboard-tester" class="tester-panel">
+            <h2>Keyboard Tester</h2>
+            <div id="virtual-keyboard"></div>
+        </div>
+    </div>
+
+    <footer id="footer">&copy; 2025 - @royvrse</footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- Main Tab Switching ---
+        const mainTabButtons = document.querySelectorAll('.tab-button');
+        const mainPanels = document.querySelectorAll('.tester-panel');
+        mainTabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                mainTabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                mainPanels.forEach(panel => panel.classList.toggle('active', panel.id === button.dataset.tab));
+            });
+        });
+
+        // --- Mouse Tester ---
+        const mouseTesterPanel = document.getElementById('mouse-tester');
+        
+        // Sub Tab Switching
+        const subTabButtons = mouseTesterPanel.querySelectorAll('.sub-tab-button');
+        const mouseTesterViews = mouseTesterPanel.querySelectorAll('.mouse-tester-view');
+        subTabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                subTabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                mouseTesterViews.forEach(view => view.classList.toggle('active', view.id === button.dataset.view));
+            });
+        });
+
+        // -- Double Click Test Logic --
+        const dcArea = document.getElementById('double-click-area');
+        const mouseLog = document.getElementById('mouse-log');
+        const clicksCount = document.getElementById('count');
+        const dcCount = document.getElementById('dcCount');
+        const resetButton = document.getElementById('reset');
+        
+        const DOUBLE_CLICK_THRESHOLD = 0.1;
+        let prevClickMicrotime = 0;
+
+        function processDoubleClick(event) {
+            if (event.button !== 0) return;
+            const clickTime = Date.now() / 1000;
+            const diff = clickTime - prevClickMicrotime;
+            
+            let logMessage;
+            if (prevClickMicrotime > 0 && diff <= DOUBLE_CLICK_THRESHOLD) {
+                dcCount.value++;
+                dcArea.classList.add('test-active');
+                logMessage = `DOUBLE CLICK! (${diff.toFixed(3)}s)`;
+            } else {
+                dcArea.classList.remove('test-active');
+                logMessage = `Time since last click: ${diff > 1000 ? 'N/A' : diff.toFixed(3)}s`;
+            }
+
+            mouseLog.value = logMessage + '\n' + mouseLog.value;
+            clicksCount.value++;
+            prevClickMicrotime = clickTime;
+        }
+
+        function resetMouseState() {
+            clicksCount.value = 0; dcCount.value = 0; mouseLog.value = ''; prevClickMicrotime = 0;
+            dcArea.classList.remove('test-active');
+        }
+
+        dcArea.addEventListener('mousedown', processDoubleClick);
+        dcArea.addEventListener('contextmenu', e => e.preventDefault());
+        resetButton.addEventListener('click', resetMouseState);
+
+        // -- Button Test Logic --
+        const buttonTestView = document.getElementById('button-test-view');
+        const virtualMouse = document.getElementById('virtual-mouse');
+        const buttonLog = document.getElementById('button-log');
+        const MOUSE_BUTTON_MAP = { 0: 'mouse-left', 1: 'mouse-middle', 2: 'mouse-right', 3: 'mouse-back', 4: 'mouse-forward' };
+        const MOUSE_BUTTON_NAMES = { 0: 'Left', 1: 'Middle', 2: 'Right', 3: 'Back', 4: 'Forward' };
+
+        function processButtonTest(event) {
+            event.preventDefault();
+            const buttonId = MOUSE_BUTTON_MAP[event.button];
+            const buttonName = MOUSE_BUTTON_NAMES[event.button] || `Button ${event.button}`;
+            
+            if (buttonId) {
+                const buttonElement = document.getElementById(buttonId);
+                buttonElement.classList.add('glow');
+                virtualMouse.classList.add('active');
+                buttonLog.textContent = `${buttonName} Button Pressed`;
+                buttonLog.classList.add('active');
+
+                const releaseGlow = () => {
+                    buttonElement.classList.remove('glow');
+                    virtualMouse.classList.remove('active');
+                    buttonLog.textContent = 'Press any mouse button';
+                    buttonLog.classList.remove('active');
+                    window.removeEventListener('mouseup', releaseGlow);
+                };
+                window.addEventListener('mouseup', releaseGlow);
+            }
+        }
+        buttonTestView.addEventListener('mousedown', processButtonTest);
+        buttonTestView.addEventListener('contextmenu', e => e.preventDefault());
+
+
+        // --- Keyboard Tester Logic ---
+        const keyboardContainer = document.getElementById('virtual-keyboard');
+        const keyLayout = [
+            ["Backquote","Digit1","Digit2","Digit3","Digit4","Digit5","Digit6","Digit7","Digit8","Digit9","Digit0","Minus","Equal","Backspace"],
+            ["Tab","KeyQ","KeyW","KeyE","KeyR","KeyT","KeyY","KeyU","KeyI","KeyO","KeyP","BracketLeft","BracketRight","Backslash"],
+            ["CapsLock","KeyA","KeyS","KeyD","KeyF","KeyG","KeyH","KeyJ","KeyK","KeyL","Semicolon","Quote","Enter"],
+            ["ShiftLeft","KeyZ","KeyX","KeyC","KeyV","KeyB","KeyN","KeyM","Comma","Period","Slash","ShiftRight"],
+            ["ControlLeft","MetaLeft","AltLeft","Space","AltRight","ControlRight"]
+        ];
+        const keyNames = {"Backquote":"`","Digit1":"1","Digit2":"2","Digit3":"3","Digit4":"4","Digit5":"5","Digit6":"6","Digit7":"7","Digit8":"8","Digit9":"9","Digit0":"0","Minus":"-","Equal":"=","Backspace":"Backspace","Tab":"Tab","KeyQ":"Q","KeyW":"W","KeyE":"E","KeyR":"R","KeyT":"T","KeyY":"Y","KeyU":"U","KeyI":"I","KeyO":"O","KeyP":"P","BracketLeft":"[","BracketRight":"]","Backslash":"\\","CapsLock":"Caps Lock","KeyA":"A","KeyS":"S","KeyD":"D","KeyF":"F","KeyG":"G","KeyH":"H","KeyJ":"J","KeyK":"K","KeyL":"L","Semicolon":";","Quote":"'","Enter":"Enter","ShiftLeft":"Shift","KeyZ":"Z","KeyX":"X","KeyC":"C","KeyV":"V","KeyB":"B","KeyN":"N","KeyM":"M","Comma":",","Period":".","Slash":"/","ShiftRight":"Shift","ControlLeft":"Ctrl","MetaLeft":"Win","AltLeft":"Alt","Space":"","AltRight":"Alt","ControlRight":"Ctrl"};
+
+        keyLayout.forEach(row => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'keyboard-row';
+            row.forEach(keyCode => {
+                const keyDiv = document.createElement('div');
+                keyDiv.className = 'key';
+                keyDiv.dataset.key = keyCode;
+                keyDiv.textContent = keyNames[keyCode] || '';
+                rowDiv.appendChild(keyDiv);
+            });
+            keyboardContainer.appendChild(rowDiv);
+        });
+
+        function handleKey(event, action) {
+            const virtualKey = document.querySelector(`.key[data-key="${event.code}"]`);
+            if (virtualKey) {
+                event.preventDefault();
+                if (action === 'down') virtualKey.classList.add('glow');
+                else virtualKey.classList.remove('glow');
+            }
+        }
+        
+        window.addEventListener('keydown', (e) => handleKey(e, 'down'));
+        window.addEventListener('keyup', (e) => handleKey(e, 'up'));
+    });
+    </script>
+</body>
+</html>
