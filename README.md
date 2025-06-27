@@ -97,4 +97,4 @@ Contributions are welcome! If you have suggestions for improvements or find any 
 
 ## © Copyright
 
-&copy; 2025 - @royvrse
+&copy; 2025 - @royverse
